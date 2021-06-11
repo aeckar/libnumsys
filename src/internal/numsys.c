@@ -13,7 +13,8 @@
 #else
 #define glibc_attribute(...)
 #endif // #ifdef __GNUC__
-/* Sting of standard whitespace characters */
+
+/* String of standard whitespace characters */
 #define WHITESPACE "\t\n\v\f\r "
 
 // Returns true if invalid
