@@ -1,7 +1,7 @@
 #ifndef CONVERT_H
 #define CONVERT_H
 
-#include "attribute.h"
+#include "internal/attribute.h"
 
 // Determines representation of number strings
 typedef enum notation_t {
