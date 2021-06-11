@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "numsys.h"
+#include "./numsys.h"
 
 // Ensures GLIBC attribute portability
 #ifdef __GNUC__
