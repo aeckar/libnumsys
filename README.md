@@ -21,13 +21,13 @@ typedef struct {
 	notation_t notat;
 } numsys_t;
 
-// Converts number string to integer value
+// Converts string in given base/representation to integer
 long long numsys_tonum(const char *, numsys_t);
 
-// Converts number string in one base/representation to number string in another
+// Converts string in one base/representation to string in another
 char *numsys_conv(const char *, numsys_t, numsys_t);
 
-// Converts integer value to number string in given base and representation
+// Converts integer to string in given base/representation
 char *numsys_tostring(long long, numsys_t);
 ```
 The library contains a single header, `numsys.h`, from which further information can found.
