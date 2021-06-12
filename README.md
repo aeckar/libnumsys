@@ -31,3 +31,5 @@ char *numsys_conv(const char *, numsys_t, numsys_t);
 char *numsys_tostring(long long, numsys_t);
 ```
 The library contains a single header, `numsys.h`, from which further information can found.
+
+If using the library in C++, it is useful to know that any argument of type `numsys_t` can be given using an [initializer list](https://en.cppreference.com/w/cpp/utility/initializer_list), as `numsys_t` is considered a [POD type](https://stackoverflow.com/questions/146452/what-are-pod-types-in-c).
