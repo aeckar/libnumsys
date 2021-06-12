@@ -37,10 +37,10 @@ glibc_attribute(nonnull, nothrow, warn_unused_result);
  * Returns NULL and sets errno accordingly on error
  *
  * Error Code    Cause
- *  EINVAL         Null string or an invalid system base or notation
- *  ENOMEM         Out of memory 
- *  EOVERFLOW      Conversion causes integer overflow
- *  ERANGE         Number string cannot be represented in 'dest' form */
+ *  EINVAL        Null string or an invalid system base or notation
+ *  ENOMEM        Out of memory 
+ *  EOVERFLOW     Conversion causes integer overflow
+ *  ERANGE        Number string cannot be represented in 'dest' form */
 extern char *numsys_conv(const char *NUMSTR, numsys_t src, numsys_t dest)
 glibc_attribute(nonnull, nothrow, warn_unused_result);
 
