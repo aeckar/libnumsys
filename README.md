@@ -1,11 +1,15 @@
 # numsys
-Number system conversion library made in C
+Number system conversion library made in C.
 
+## Reasoning
 In many applications of computer science, it is necessary to differentiate between the different number systems that programmers use on a day-to-day basis. The most common of these include binary, octal, and hexadecimal. Although one can simply practice conversion between them and regular decimal,such a feat is simply not practical for everyone who needs to use these representations
 
 In other fields, such as in the study of historical number systems, there is also a need for a quick and easy-to-use conversion method. Although impractical to represent all symbols of each system in a single method, numeral systems such as the Sumerian, Babylonian, Mayan, Muisca, and Kaktovik all can have their digits represented in English using the beginning letters of the alphabet, similar to in hexadecimal.
 
-Because of the need for a fast and convenient number system converter, I created this library. At a glance, its features include:
+Because of the need for a fast and convenient number system converter, I created this library.
+
+## Usage Notes
+At a glance, the library's features include:
 ```C
 // Number representation type
 typedef enum {
