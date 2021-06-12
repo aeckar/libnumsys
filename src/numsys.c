@@ -8,9 +8,10 @@
 #include <stdio.h>
 #include "numsys.h"
 
-/* String of standard whitespace characters */
+// String of standard whitespace characters
 #define WHITESP        "\t\n\v\f\r "
 #define WHITESP_LEN    6
+
 // Returns true if invalid
 #define inval_base(base)   ((base) < 1 || (base) > 36)
 #define inval_notat(notat) (!((notat) & (NEG_SIGN|SIGN_BIT|ONES_COMPL|TWOS_COMPL)))
