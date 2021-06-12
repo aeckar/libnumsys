@@ -1,7 +1,12 @@
 #ifndef CONVERT_H
 #define CONVERT_H
 
-#include "internal/attribute.h"
+// Ensures GLIBC attribute portability
+#ifdef __GNUC__
+#define glibc_attribute(...)	__attribute__((__VA_ARGS__))
+#else
+#define glibc_attribute(...)
+#endif // #ifdef __GNUC__
 
 // Determines representation of number strings
 typedef enum notation_t {
@@ -18,20 +23,36 @@ typedef struct numsys_t {
 } numsys_t;
 
 /* Returns value of number string according to given number system
- * Returns 0 and sets errno to EINVAL or EOVERFLOW on respective error */
+ * Returns 0 and sets errno accordingly on error
+ *
+ * Error Code	Cause
+ *  EINVAL		 Null string or an invalid system base or notation
+ *  ENOMEM		 Out of memory 
+ * 	EOVERFLOW	 Conversion causes integer overflow */
 extern long long numsys_tonum(const char *NUMSTR, numsys_t sys)
 glibc_attribute(nonnull, nothrow, warn_unused_result);
 
 /* Converts number string of number system 'src' to equivalent string of system 'dest'
- * Returns conversion as malloc'd number string */
+ * Returns conversion as malloc'd number string
+ * Returns NULL and sets errno accordingly on error
+ *
+ * Error Code	Cause
+ *  EINVAL		 Null string or an invalid system base or notation
+ *  ENOMEM		 Out of memory 
+ *  EOVERFLOW	 Conversion causes integer overflow
+ *	ERANGE		 Number string cannot be represented in 'dest' form */
 extern char *numsys_conv(const char *NUMSTR, numsys_t src, numsys_t dest)
 glibc_attribute(nonnull, nothrow, warn_unused_result);
 
 /* Returns malloc'd number string of value according to given system
- * Returns NULL and sets errno to EINVAL on error */
+ * Returns NULL and sets errno accordingly on error
+ *
+ * Error Code	Cause
+ *	 EINVAL		 Null string or an invalid system base or notation
+ *	 ENOMEM		 Out of memory
+ *	 ERANGE		 Number cannot be represented in string form */
 extern char *numsys_tostring(long long num, numsys_t sys)
 glibc_attribute(nothrow, warn_unused_result);
 
 #undef glibc_attribute
-#undef ATTRIBUTE_H
 #endif
