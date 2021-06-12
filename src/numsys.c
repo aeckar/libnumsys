@@ -8,12 +8,15 @@
 #include <stdio.h>
 #include "numsys.h"
 
+// Allows for null check in spite of 'nonnull' attribute
+#pragma GCC diagnostic ignored "-Wnonnull-compare"
+
 // String of standard whitespace characters
 #define WHITESP        "\t\n\v\f\r "
 #define WHITESP_LEN    6
 
 // Returns true if invalid
-#define inval_base(base)   ((base) < 1 || (base) > 36)
+#define inval_base(base)    ((base) < 1 || (base) > 36)
 #define inval_notat(notat) (!((notat) & (NEG_SIGN|SIGN_BIT|ONES_COMPL|TWOS_COMPL)))
 
 // Returns digit of maximum value for given base
@@ -56,8 +59,6 @@ static unsigned digit_to_num(char c) {
 
 // For negative numbers, returns index of sign bit or negative sign
 static size_t locate_sign(const char *NUMSTR) {
-    const size_t NCHRS = strlen(NUMSTR) - 1;
-
     for (size_t i = 0;; ++i) {
         if (!isspace(NUMSTR[i]))
             return i;
@@ -155,7 +156,7 @@ char *numsys_tostring(long long num, numsys_t sys) {
         return NULL;
 
     const bool HAS_SIGN =
-        (sys.notat == NEG_SIGN && num < 0 || sys.notat != NEG_SIGN) && sys.base != 1;
+        ((sys.notat == NEG_SIGN && num < 0) || sys.notat != NEG_SIGN) && sys.base != 1;
     char *const result = calloc(NCHRS + HAS_SIGN + 1, sizeof(char));
 
     if (!result)
