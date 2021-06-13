@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
+
 #include "numsys.h"
 
 // Allows for null check in spite of 'nonnull' attribute
