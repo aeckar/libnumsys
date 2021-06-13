@@ -1,5 +1,5 @@
-#ifndef CONVERT_H
-#define CONVERT_H
+#ifndef NUMSYS_H
+#define NUMSYS_H
 
 // Ensures GLIBC attribute portability
 #ifdef __GNUC__
