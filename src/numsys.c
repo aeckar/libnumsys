@@ -124,7 +124,7 @@ long long numsys_tonum(const char *NUMSTR, numsys_t sys) {
             result *= -1;
         else if (!isblank(cur)) {
             digit_val = digit_to_num(cur);
-            if (place_val > LLONG_MAX / digit_val) {
+            if (digit_val && place_val > LLONG_MAX / digit_val) {
                 errno = EOVERFLOW;
                 free(valid);
                 return 0;
