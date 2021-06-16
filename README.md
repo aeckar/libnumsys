@@ -11,18 +11,18 @@ Because of the need for a fast and convenient number system converter, I created
 ## Usage Notes
 At a glance, the library's features include:
 ```C
-// Number representation type
+// Negative number representation type
 typedef enum {
 	NEG_SIGN   = 1,	// Append negative sign to front
 	SIGN_BIT   = 2,	// Append nonzero digit to front
 	ONES_COMPL = 4,	// Set as complement of positive
 	TWOS_COMPL = 8	// Set as complement of positive plus 1
-} notation_t;
+} numrep_t;
 
 // Number system type
 typedef struct {
 	unsigned base;
-	notation_t notat;
+	numrep_t rep;
 } numsys_t;
 
 // Converts string in given base/representation to integer
