@@ -1,4 +1,4 @@
-# numsys
+# libnumsys
 Number system conversion library made in C.
 
 ## Reasoning
