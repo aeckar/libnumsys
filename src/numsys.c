@@ -11,9 +11,9 @@
 // Allows for null check in spite of 'nonnull' attribute
 #pragma GCC diagnostic ignored "-Wnonnull-compare"
 
-// String of standard whitespace characters
-#define WHITESP		"\t\n\v\f\r "
-#define WHITESP_LEN	6
+// String of standard whitespace characters and underscore
+#define IGNORE		"\t\n\v\f\r _"
+#define IGNORE_LEN	7
 
 // Returns true if invalid
 #define inval_base(base)	((base) < 1 || (base) > 36)
@@ -60,7 +60,7 @@ static unsigned digit_to_num(char c) {
 // For negative numbers, returns index of sign bit or negative sign
 static size_t locate_sign(const char *NUMSTR) {
 	for (size_t i = 0;; ++i) {
-		if (!isspace(NUMSTR[i]))
+		if (!strchr(IGNORE, NUMSTR[i]))
 			return i;
 	}
 }
@@ -69,7 +69,7 @@ static size_t locate_sign(const char *NUMSTR) {
  * Returns NULL on error */ 
 static char *valid_chrs(numsys_t sys) {
 	const bool NEG_IS_VAL = sys.rep == NEG_SIGN;
-	const size_t MEMSIZE = WHITESP_LEN + sys.base +
+	const size_t MEMSIZE = IGNORE_LEN + sys.base +
 		(sys.base > 10 ? sys.base - 10 : 0) + NEG_IS_VAL + 2;
 	char *const valid = calloc(MEMSIZE, sizeof(char));
 
@@ -78,12 +78,12 @@ static char *valid_chrs(numsys_t sys) {
 
 	size_t digit_index = 0;
 
-	memcpy(valid, WHITESP, WHITESP_LEN);
+	memcpy(valid, IGNORE, IGNORE_LEN);
 	if (NEG_IS_VAL)
-		valid[WHITESP_LEN] = '-';
-	for (size_t i = WHITESP_LEN + NEG_IS_VAL; i < MEMSIZE - 2; ++i) {
+		valid[IGNORE_LEN] = '-';
+	for (size_t i = IGNORE_LEN + NEG_IS_VAL; i < MEMSIZE - 2; ++i) {
 		valid[i] = DIGITS[digit_index++];
-		if (i >= WHITESP_LEN - 1 + 10)
+		if (i >= IGNORE_LEN - 1 + 10)
 			valid[++i] = DIGITS[digit_index++];
 	}
 	return valid;
@@ -117,11 +117,11 @@ long long numsys_tonum(const char *NUMSTR, numsys_t sys) {
 			free(valid);
 			return 0;
 		}
-		if (cur == '-') {
+		if (cur == '-' && (sys.rep != NEG_SIGN || i != SIGN_INDEX)) {
 			errno = EINVAL;
 			free(valid);
 			return 0;
-		} else if (!isblank(cur)) {
+		} else if (!strchr(IGNORE, cur) && cur != '-') {
 			digit_val =	sys.rep & 12 && IS_SIGNED ?	// 12 = ONES_COMPL|TWOS_COMPL
 				sys.base - (sys.base != 1) - digit_to_num(cur) : digit_to_num(cur);
 			if (digit_val && place_val > LLONG_MAX / digit_val) {
