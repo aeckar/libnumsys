@@ -14,7 +14,7 @@ At a glance, the library's features include:
 // Negative number representation type
 typedef enum {
 	NEG_SIGN   = 1,	// Append negative sign to front
-	SIGN_BIT   = 2,	// Append nonzero digit to front
+	SIGN_PLACE = 2,	// Append nonzero digit to front
 	ONES_COMPL = 4,	// Set as complement of positive
 	TWOS_COMPL = 8	// Set as complement of positive plus 1
 } numrep_t;
@@ -36,11 +36,11 @@ char *numsys_tostring(long long, numsys_t);
 ```
 The library contains a single header, `numsys.h`, from which further information can found.
 
-If using the library with stanrd C99 or later, it is useful to know that arguments of type `numsys_t` can be passed without the use of a temporary buffer by using a [compound literal](https://en.cppreference.com/w/c/language/compound_literal).
+If using the library with stanrd C99 or later, it is useful to know that arguments of type `numsys_t` can be passed without the use of a temporary buffer by using a [compound literal](https://en.cppreference.com/w/c/language/compound_literal). Underscores are allowed in number strings, and are encouraged to preserve readability.
 ```C
-numsys_tonum("12", (numsys_t){10, NEG_SIGN});
+numsys_tonum("1_028", (numsys_t){10, NEG_SIGN});
 ```
 Similarly, in C++, arguments of type `numsys_t` can be passed using an [initializer list](https://en.cppreference.com/w/cpp/utility/initializer_list), as `numsys_t` is considered a [POD type](https://stackoverflow.com/questions/146452/what-are-pod-types-in-c).
 ```C++
-numsys_tostring(0b101101, {2, SIGN_BIT});
+numsys_tostring(0b101101, {2, SIGN_PLACE});
 ```
