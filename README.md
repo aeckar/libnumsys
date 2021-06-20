@@ -10,7 +10,7 @@ Because of the need for a fast and convenient number system converter, I created
 
 ## Usage Notes
 At a glance, the library's features include:
-```C
+```C++
 // Negative number representation type
 typedef enum {
     NEG_SIGN   = 1, // Append negative sign to front
@@ -27,15 +27,25 @@ typedef struct {
 
 // Converts string in given base/representation to integer
 long long numsys_tonum(const char *, numsys_t);
-unsigned long long numsys_tounum(const char *, unsigned);   // Unsigned ver.
+unsigned long long numsys_utonum(const char *, unsigned);   // Unsigned ver.
 
 // Converts string in one base/representation to string in another
 char *numsys_conv(const char *, numsys_t, numsys_t);
-char *numsys_convu(const char *, unsigned, unsigned);
+char *numsys_uconv(const char *, unsigned, unsigned);
 
 // Converts integer to string in given base/representation
 char *numsys_tostring(long long, numsys_t);
-char *numsys_toustring(unsigned long long, unsigned);
+char *numsys_utostring(unsigned long long, unsigned);
+
+// C++ function aliases
+namespace numsys {
+    long long tonum(const char *, numsys_t);
+    unsigned long long utonum(const char *, unsigned);
+    char *conv(const char *, numsys_t, numsys_t);
+    char *uconv(const char *, unsigned, unsigned);
+    char *tostring(long long, numsys_t);
+    char *utostring(unsigned long long, unsigned);
+}
 ```
 The library contains a single header, `numsys.h`, from which further information can found.
 
