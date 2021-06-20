@@ -174,7 +174,7 @@ long long numsys_tonum(const char *NUMSTR, numsys_t sys) {
     free(valid);
     return result;
 }
-unsigned long long numsys_tounum(const char *NUMSTR, unsigned base) {
+unsigned long long numsys_utonum(const char *NUMSTR, unsigned base) {
     if uncommon (!NUMSTR || inval_base(base)) {
         errno = EINVAL;
         return 0;
@@ -224,7 +224,7 @@ char *numsys_conv(const char *NUMSTR, numsys_t src, numsys_t dest) {
         return NULL;
     return numsys_tostring(TMP, dest);
 }
-char *numsys_convu(const char *NUMSTR, unsigned src, unsigned dest) {
+char *numsys_uconv(const char *NUMSTR, unsigned src, unsigned dest) {
     const unsigned long long TMP = numsys_tounum(NUMSTR, src);
 
     if uncommon (errno > 0)
@@ -275,7 +275,7 @@ char *numsys_tostring(long long num, numsys_t sys) {
     }
     return result;
 }
-char *numsys_toustring(unsigned long long num, unsigned base) {
+char *numsys_utostring(unsigned long long num, unsigned base) {
     if uncommon (inval_base(base)) {
         errno = EINVAL;
         return NULL;
