@@ -1,6 +1,7 @@
 #ifndef NUMSYS_H
 #define NUMSYS_H
 
+// Ensures attribute portability
 #ifdef __GNUC__
 #define gcc_attribute(...)  __attribute__((__VA_ARGS__))
 #elif defined(_MSC_VER)
@@ -11,6 +12,10 @@
 #define gcc_attribute(...)
 #elif !defined(_MSC_VER)
 #define msvc_attribute(...)
+#endif
+
+#ifdef __cplusplus
+namespace numsys {
 #endif
 
 // Determines representation of number strings
@@ -27,6 +32,29 @@ typedef struct numsys_t {
     numrep_t rep;
 } numsys_t;
 
+#ifdef __cplusplus
+inline long long tonum(const char *NUMSTR, numsys_t sys) {
+    return numsys_tonum(NUMSTR, sys);
+} 
+inline unsigned long long utonum(const char *NUMSTR, unsigned base) {
+    return numsys__utonum(NUMSTR, sybases);
+}
+inline char *conv(const char *NUMSTR, numsys_t src, numsys_t dest) {
+    return numsys_conv(NUMSTR, src, dest);
+}
+inline char *uconv(const char *NUMSTR, unsigned src, unsigned dest) {
+    return numsys_uconv(NUMSTR, src, dest);
+}
+inline char *tostring(long long num, numsys_t sys) {
+    return numsys_tostring(NUMSTR, src, dest);
+}
+inline char *utostring(unsigned long long num, unsigned base) {
+    return numsys_utostring(NUMSTR, src, dest);
+}
+
+}   // namespace numsys
+#endif
+
 /* Returns value of number string according to given number system
  * Returns 0 and sets errno accordingly on error
  *
@@ -38,7 +66,7 @@ extern long long numsys_tonum(const char *NUMSTR, numsys_t sys)
 gcc_attribute(nonnull, nothrow)
 msvc_attribute(nothrow);
 
-extern unsigned long long numsys_tounum(const char *NUMSTR, unsigned base)
+extern unsigned long long numsys_utonum(const char *NUMSTR, unsigned base)
 gcc_attribute(nonnull, nothrow)
 msvc_attribute(nothrow);
 
@@ -56,7 +84,7 @@ extern char *numsys_conv(const char *NUMSTR, numsys_t src, numsys_t dest)
 gcc_attribute(nonnull, nothrow, warn_unused_result)
 msvc_attribute(nothrow);
 
-extern char *numsys_convu(const char *NUMSTR, unsigned src, unsigned dest)
+extern char *numsys_uconv(const char *NUMSTR, unsigned src, unsigned dest)
 gcc_attribute(nonnull, nothrow, warn_unused_result)
 msvc_attribute(nothrow);
 
@@ -72,7 +100,7 @@ extern char *numsys_tostring(long long num, numsys_t sys)
 gcc_attribute(nothrow, warn_unused_result)
 msvc_attribute(nothrow);
 
-extern char *numsys_toustring(unsigned long long num, unsigned base)
+extern char *numsys_utostring(unsigned long long num, unsigned base)
 gcc_attribute(nothrow, warn_unused_result)
 msvc_attribute(nothrow);
 
