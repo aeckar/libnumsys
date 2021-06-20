@@ -15,7 +15,7 @@
 #ifdef __GNUC__
 #define uncommon(cond) (__builtin_expect(cond, false))
 #else
-#define uncommon(cond, value) (cond)
+#define uncommon(cond) (cond)
 #endif
 
 // String of standard whitespace characters and underscore
@@ -40,6 +40,22 @@ static unsigned ndigits(long long num, unsigned base) {
     unsigned count = 0;
 
     num = llabs(num);
+    if (base == 1) {
+        if uncommon (num > UINT_MAX) {
+            errno = ERANGE;
+            return 0;
+        }
+        return num;
+    }
+    do {
+        num /= base;
+        ++count;
+    } while (num);
+    return count;
+}
+static unsigned nudigits(unsigned long long num, unsigned base) {
+    unsigned count = 0;
+
     if (base == 1) {
         if uncommon (num > UINT_MAX) {
             errno = ERANGE;
@@ -112,8 +128,7 @@ long long numsys_tonum(const char *NUMSTR, numsys_t sys) {
         (sys.rep != NEG_SIGN && NUMSTR[SIGN_INDEX] != '0') || NUMSTR[SIGN_INDEX] == '-';
     char cur;
     unsigned digit_val;
-    unsigned long long to_add, place_val = 1;
-    long long result = 0;
+    long long to_add, place_val = 1, result = 0;
 
     if (sys.rep == TWOS_COMPL && IS_SIGNED)
         ++result;
@@ -159,6 +174,63 @@ long long numsys_tonum(const char *NUMSTR, numsys_t sys) {
     free(valid);
     return result;
 }
+unsigned long long numsys_tounum(const char *NUMSTR, unsigned base) {
+    if uncommon (!NUMSTR || inval_base(base)) {
+        errno = EINVAL;
+        return 0;
+    }
+
+    char *const valid = valid_chrs((numsys_t) {base, SIGN_PLACE});
+
+    if uncommon (!valid)
+        return 0;
+
+    char cur;
+    unsigned digit_val;
+    unsigned long long to_add, place_val = 1, result = 0;
+
+    for (size_t i = strlen(NUMSTR) - 1;; --i) {
+        cur = NUMSTR[i];
+        if uncommon (!strchr(valid, cur)) {
+            errno = EINVAL;
+            free(valid);
+            return 0;
+        } else if (!strchr(IGNORE, cur) && cur != '-') {
+            digit_val = digit_to_num(cur);
+            if uncommon (digit_val && place_val > ULLONG_MAX / digit_val) {
+                errno = EOVERFLOW;
+                free(valid);
+                return 0;
+            }
+            to_add = digit_val * place_val;
+            if uncommon (result > ULLONG_MAX - to_add) {
+                errno = EOVERFLOW;
+                free(valid);
+                return 0;
+            }
+            result += to_add;
+            place_val *= base;
+        }
+        if (i == 0)
+            break;
+    }
+    free(valid);
+    return result;
+}
+char *numsys_conv(const char *NUMSTR, numsys_t src, numsys_t dest) {
+    const long long TMP = numsys_tonum(NUMSTR, src);
+
+    if uncommon (errno > 0)
+        return NULL;
+    return numsys_tostring(TMP, dest);
+}
+char *numsys_convu(const char *NUMSTR, unsigned src, unsigned dest) {
+    const unsigned long long TMP = numsys_tounum(NUMSTR, src);
+
+    if uncommon (errno > 0)
+        return NULL;
+    return numsys_toustring(TMP, dest);
+}
 char *numsys_tostring(long long num, numsys_t sys) {
     if uncommon (inval_base(sys.base) || inval_rep(sys.rep)) {
         errno = EINVAL;
@@ -203,10 +275,33 @@ char *numsys_tostring(long long num, numsys_t sys) {
     }
     return result;
 }
-char *numsys_conv(const char *NUMSTR, numsys_t src, numsys_t dest) {
-    const long long TMP = numsys_tonum(NUMSTR, src);
+char *numsys_toustring(unsigned long long num, unsigned base) {
+    if uncommon (inval_base(base)) {
+        errno = EINVAL;
+        return NULL;
+    }
+
+    const unsigned NCHRS = nudigits(num, base);
 
     if uncommon (errno > 0)
         return NULL;
-    return numsys_tostring(TMP, dest);
+
+    char *const result = calloc(NCHRS + 1, sizeof(char));
+
+    if uncommon (!result)
+        return NULL;
+
+    unsigned place = 0;
+    long long digit_val;
+
+    for (size_t i = NCHRS - 1;; --i) {
+        digit_val = num;
+        digit_val /= pow(base, place++);        // Shift right to desired digit
+        digit_val -= digit_val / base * base;   // Subtract leading digits
+        result[i] = digit_val +
+            (digit_val >= 0 && digit_val <= 9 ? 48 : 55);   // 48 = '0', 58 = 10 + 'A'
+        if (i == 0)
+            break;
+    }
+    return result;
 }
