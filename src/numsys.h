@@ -12,11 +12,12 @@
 #define gcc_attribute(...)
 #endif
 
-
 #ifndef _MSC_VER
 #define msvc_attribute(...)
 #endif
 
+/* Ensures 'extern' works for C and C++
+ * Includes typedefs within 'numsys' if using C++ */
 #ifdef __cplusplus
 #define external(id)    extern id
 namespace numsys {
@@ -92,6 +93,7 @@ external("C") char *numsys_utostring(unsigned long long num, unsigned base)
 gcc_attribute(nothrow, warn_unused_result)
 msvc_attribute(nothrow);
 
+// C++ function aliases
 #ifdef __cplusplus
 namespace numsys {
 
@@ -116,8 +118,8 @@ inline char *utostring(unsigned long long num, unsigned base) {
 
 }
 
-#undef numsys_t
 #undef external
+#undef numsys_t
 #endif  // #ifdef __cplusplus
 
 #undef attribute
