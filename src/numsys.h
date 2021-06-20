@@ -10,7 +10,10 @@
 
 #ifndef __GNUC__
 #define gcc_attribute(...)
-#elif !defined(_MSC_VER)
+#endif
+
+
+#ifndef _MSC_VER
 #define msvc_attribute(...)
 #endif
 
