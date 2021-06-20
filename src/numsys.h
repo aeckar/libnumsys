@@ -15,7 +15,10 @@
 #endif
 
 #ifdef __cplusplus
+#define external(id)    extern id
 namespace numsys {
+#else
+#define external(id)    extern
 #endif
 
 // Determines representation of number strings
@@ -33,6 +36,62 @@ typedef struct numsys_t {
 } numsys_t;
 
 #ifdef __cplusplus
+}   // namespace numsys
+#define numsys_t numsys::numsys_t
+#endif
+
+/* Returns value of number string according to given number system
+ * Returns 0 and sets errno accordingly on error
+ *
+ * Error Code    Cause
+ *  EINVAL        Null string or an invalid system base or notation
+ *  ENOMEM        Out of memory 
+ *  EOVERFLOW     Conversion causes integer overflow */
+external("C") long long numsys_tonum(const char *NUMSTR, numsys_t sys)
+gcc_attribute(nonnull, nothrow)
+msvc_attribute(nothrow);
+
+external("C") unsigned long long numsys_utonum(const char *NUMSTR, unsigned base)
+gcc_attribute(nonnull, nothrow)
+msvc_attribute(nothrow);
+
+/* Converts number string of number system 'src' to equivalent string of system 'dest'
+ * Returns conversion as malloc'd number string
+ * Returns NULL and sets errno accordingly on error
+ * Base-1 negatives will hold the value of their absolute value
+ *
+ * Error Code    Cause
+ *  EINVAL        Null string or an invalid system base or notation
+ *  ENOMEM        Out of memory 
+ *  EOVERFLOW     Conversion causes integer overflow
+ *  ERANGE        Number string cannot be represented in 'dest' form */
+external("C") char *numsys_conv(const char *NUMSTR, numsys_t src, numsys_t dest)
+gcc_attribute(nonnull, nothrow, warn_unused_result)
+msvc_attribute(nothrow);
+
+external("C") char *numsys_uconv(const char *NUMSTR, unsigned src, unsigned dest)
+gcc_attribute(nonnull, nothrow, warn_unused_result)
+msvc_attribute(nothrow);
+
+/* Returns malloc'd number string of value according to given system
+ * Returns NULL and sets errno accordingly on error
+ * Base-1 negatives will hold the value of their absolute value
+ *
+ * Error Code    Cause
+ *  EINVAL        Null string or an invalid system base or notation
+ *  ENOMEM        Out of memory
+ *  ERANGE        Number cannot be represented in string form */
+external("C") char *numsys_tostring(long long num, numsys_t sys)
+gcc_attribute(nothrow, warn_unused_result)
+msvc_attribute(nothrow);
+
+external("C") char *numsys_utostring(unsigned long long num, unsigned base)
+gcc_attribute(nothrow, warn_unused_result)
+msvc_attribute(nothrow);
+
+#ifdef __cplusplus
+namespace numsys {
+
 inline long long tonum(const char *NUMSTR, numsys_t sys) {
     return numsys_tonum(NUMSTR, sys);
 } 
@@ -52,64 +111,11 @@ inline char *utostring(unsigned long long num, unsigned base) {
     return numsys_utostring(num, base);
 }
 
-}   // namespace numsys
+}
 
-#define numsys_t numsys::numsys_t
-#endif
-
-/* Returns value of number string according to given number system
- * Returns 0 and sets errno accordingly on error
- *
- * Error Code    Cause
- *  EINVAL        Null string or an invalid system base or notation
- *  ENOMEM        Out of memory 
- *  EOVERFLOW     Conversion causes integer overflow */
-extern long long numsys_tonum(const char *NUMSTR, numsys_t sys)
-gcc_attribute(nonnull, nothrow)
-msvc_attribute(nothrow);
-
-extern unsigned long long numsys_utonum(const char *NUMSTR, unsigned base)
-gcc_attribute(nonnull, nothrow)
-msvc_attribute(nothrow);
-
-/* Converts number string of number system 'src' to equivalent string of system 'dest'
- * Returns conversion as malloc'd number string
- * Returns NULL and sets errno accordingly on error
- * Base-1 negatives will hold the value of their absolute value
- *
- * Error Code    Cause
- *  EINVAL        Null string or an invalid system base or notation
- *  ENOMEM        Out of memory 
- *  EOVERFLOW     Conversion causes integer overflow
- *  ERANGE        Number string cannot be represented in 'dest' form */
-extern char *numsys_conv(const char *NUMSTR, numsys_t src, numsys_t dest)
-gcc_attribute(nonnull, nothrow, warn_unused_result)
-msvc_attribute(nothrow);
-
-extern char *numsys_uconv(const char *NUMSTR, unsigned src, unsigned dest)
-gcc_attribute(nonnull, nothrow, warn_unused_result)
-msvc_attribute(nothrow);
-
-/* Returns malloc'd number string of value according to given system
- * Returns NULL and sets errno accordingly on error
- * Base-1 negatives will hold the value of their absolute value
- *
- * Error Code    Cause
- *  EINVAL        Null string or an invalid system base or notation
- *  ENOMEM        Out of memory
- *  ERANGE        Number cannot be represented in string form */
-extern char *numsys_tostring(long long num, numsys_t sys)
-gcc_attribute(nothrow, warn_unused_result)
-msvc_attribute(nothrow);
-
-extern char *numsys_utostring(unsigned long long num, unsigned base)
-gcc_attribute(nothrow, warn_unused_result)
-msvc_attribute(nothrow);
+#undef numsys_t
+#undef external
+#endif  // #ifdef __cplusplus
 
 #undef attribute
-
-#ifdef __cplusplus
-#undef numsys_t
-#endif
-
-#endif
+#endif  // #ifndef NUMSYS_H
