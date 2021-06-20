@@ -1,13 +1,16 @@
 #ifndef NUMSYS_H
 #define NUMSYS_H
 
-// Ensures GLIBC attribute portability
 #ifdef __GNUC__
-#define attribute(...)  __attribute__((__VA_ARGS__))
-#elif defined(_MS_VER)
-#define attribute(...)  __declspec(__VA_ARGS__)
-#else
-#define attribute(...)
+#define gcc_attribute(...)  __attribute__((__VA_ARGS__))
+#elif defined(_MSC_VER)
+#define msvc_attribute(...)  __declspec(__VA_ARGS__)
+#endif
+
+#ifndef __GNUC__
+#define gcc_attribute(...)
+#elif !defined(_MSC_VER)
+#define msvc_attribute(...)
 #endif
 
 // Determines representation of number strings
@@ -32,7 +35,12 @@ typedef struct numsys_t {
  *  ENOMEM        Out of memory 
  *  EOVERFLOW     Conversion causes integer overflow */
 extern long long numsys_tonum(const char *NUMSTR, numsys_t sys)
-attribute(nonnull, nothrow, warn_unused_result);
+gcc_attribute(nonnull, nothrow)
+msvc_attribute(nothrow);
+
+extern unsigned long long numsys_tounum(const char *NUMSTR, unsigned base)
+gcc_attribute(nonnull, nothrow)
+msvc_attribute(nothrow);
 
 /* Converts number string of number system 'src' to equivalent string of system 'dest'
  * Returns conversion as malloc'd number string
@@ -45,7 +53,12 @@ attribute(nonnull, nothrow, warn_unused_result);
  *  EOVERFLOW     Conversion causes integer overflow
  *  ERANGE        Number string cannot be represented in 'dest' form */
 extern char *numsys_conv(const char *NUMSTR, numsys_t src, numsys_t dest)
-attribute(nonnull, nothrow, warn_unused_result);
+gcc_attribute(nonnull, nothrow, warn_unused_result)
+msvc_attribute(nothrow);
+
+extern char *numsys_convu(const char *NUMSTR, unsigned src, unsigned dest)
+gcc_attribute(nonnull, nothrow, warn_unused_result)
+msvc_attribute(nothrow);
 
 /* Returns malloc'd number string of value according to given system
  * Returns NULL and sets errno accordingly on error
@@ -56,7 +69,12 @@ attribute(nonnull, nothrow, warn_unused_result);
  *  ENOMEM        Out of memory
  *  ERANGE        Number cannot be represented in string form */
 extern char *numsys_tostring(long long num, numsys_t sys)
-attribute(nothrow, warn_unused_result);
+gcc_attribute(nothrow, warn_unused_result)
+msvc_attribute(nothrow);
+
+extern char *numsys_toustring(unsigned long long num, unsigned base)
+gcc_attribute(nothrow, warn_unused_result)
+msvc_attribute(nothrow);
 
 #undef attribute
 #endif
