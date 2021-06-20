@@ -225,11 +225,11 @@ char *numsys_conv(const char *NUMSTR, numsys_t src, numsys_t dest) {
     return numsys_tostring(TMP, dest);
 }
 char *numsys_uconv(const char *NUMSTR, unsigned src, unsigned dest) {
-    const unsigned long long TMP = numsys_tounum(NUMSTR, src);
+    const unsigned long long TMP = numsys_utonum(NUMSTR, src);
 
     if uncommon (errno > 0)
         return NULL;
-    return numsys_toustring(TMP, dest);
+    return numsys_utostring(TMP, dest);
 }
 char *numsys_tostring(long long num, numsys_t sys) {
     if uncommon (inval_base(sys.base) || inval_rep(sys.rep)) {
