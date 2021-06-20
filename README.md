@@ -13,26 +13,29 @@ At a glance, the library's features include:
 ```C
 // Negative number representation type
 typedef enum {
-	NEG_SIGN   = 1,	// Append negative sign to front
-	SIGN_PLACE = 2,	// Append nonzero digit to front
-	ONES_COMPL = 4,	// Set as complement of positive
-	TWOS_COMPL = 8	// Set as complement of positive plus 1
+    NEG_SIGN   = 1, // Append negative sign to front
+    SIGN_PLACE = 2, // Append nonzero digit to front
+    ONES_COMPL = 4, // Set as complement of positive
+    TWOS_COMPL = 8  // Set as complement of positive plus 1
 } numrep_t;
 
 // Number system type
 typedef struct {
-	unsigned base;
-	numrep_t rep;
+    unsigned base;
+    numrep_t rep;
 } numsys_t;
 
 // Converts string in given base/representation to integer
 long long numsys_tonum(const char *, numsys_t);
+unsigned long long numsys_tounum(const char *, unsigned);   // Unsigned ver.
 
 // Converts string in one base/representation to string in another
 char *numsys_conv(const char *, numsys_t, numsys_t);
+char *numsys_convu(const char *, unsigned, unsigned);
 
 // Converts integer to string in given base/representation
 char *numsys_tostring(long long, numsys_t);
+char *numsys_toustring(unsigned long long, unsigned);
 ```
 The library contains a single header, `numsys.h`, from which further information can found.
 
