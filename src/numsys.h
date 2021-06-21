@@ -7,20 +7,16 @@
 #elif defined(_MSC_VER)
 #define msvc_attribute(...)  __declspec(__VA_ARGS__)
 #endif
-
 #ifndef __GNUC__
 #define gcc_attribute(...)
 #endif
-
 #ifndef _MSC_VER
 #define msvc_attribute(...)
 #endif
 
-/* Ensures 'extern' works for C and C++
- * Includes typedefs within 'numsys' if using C++ */
+/* Ensures 'extern' works for C and C++ */
 #ifdef __cplusplus
 #define external(id)    extern id
-namespace numsys {
 #else
 #define external(id)    extern
 #endif
@@ -38,11 +34,6 @@ typedef struct numsys_t {
     unsigned base;
     numrep_t rep;
 } numsys_t;
-
-#ifdef __cplusplus
-}   // namespace numsys
-#define numsys_t numsys::numsys_t
-#endif
 
 /* Returns value of number string according to given number system
  * Returns 0 and sets errno accordingly on error
@@ -93,34 +84,7 @@ external("C") char *numsys_utostring(unsigned long long num, unsigned base)
 gcc_attribute(nothrow, warn_unused_result)
 msvc_attribute(nothrow);
 
-// C++ function aliases
-#ifdef __cplusplus
-namespace numsys {
-
-inline long long tonum(const char *NUMSTR, numsys_t sys) {
-    return numsys_tonum(NUMSTR, sys);
-} 
-inline unsigned long long utonum(const char *NUMSTR, unsigned base) {
-    return numsys_utonum(NUMSTR, base);
-}
-inline char *conv(const char *NUMSTR, numsys_t src, numsys_t dest) {
-    return numsys_conv(NUMSTR, src, dest);
-}
-inline char *uconv(const char *NUMSTR, unsigned src, unsigned dest) {
-    return numsys_uconv(NUMSTR, src, dest);
-}
-inline char *tostring(long long num, numsys_t sys) {
-    return numsys_tostring(num, sys);
-}
-inline char *utostring(unsigned long long num, unsigned base) {
-    return numsys_utostring(num, base);
-}
-
-}
 
 #undef external
-#undef numsys_t
-#endif  // #ifdef __cplusplus
-
 #undef attribute
 #endif  // #ifndef NUMSYS_H

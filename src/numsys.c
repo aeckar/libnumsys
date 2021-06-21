@@ -36,24 +36,7 @@ static const char *DIGITS = "0123456789"
 
 /* Returns number of digits in equivalent number string
  * Returns 0 and sets errno to ERANGE on error */
-static unsigned ndigits(long long num, unsigned base) {
-    unsigned count = 0;
-
-    num = llabs(num);
-    if (base == 1) {
-        if uncommon (num > UINT_MAX) {
-            errno = ERANGE;
-            return 0;
-        }
-        return num;
-    }
-    do {
-        num /= base;
-        ++count;
-    } while (num);
-    return count;
-}
-static unsigned nudigits(unsigned long long num, unsigned base) {
+static unsigned ndigits(unsigned long long num, unsigned base) {
     unsigned count = 0;
 
     if (base == 1) {
@@ -86,6 +69,19 @@ static size_t locate_sign(const char *NUMSTR) {
         if (!strchr(IGNORE, NUMSTR[i]))
             return i;
     }
+}
+
+// Fast exponentiation algorithm
+unsigned long long ullpow(unsigned long long base, unsigned long long pow){
+    unsigned long result = 1;
+
+    while (pow) {
+        if (pow & 1)
+            result *= base;
+        pow >>= 1;
+        base *= base;
+    }
+    return result;
 }
 
 /* Returns string of valid characters in number string of given system
@@ -237,7 +233,7 @@ char *numsys_tostring(long long num, numsys_t sys) {
         return NULL;
     }
 
-    const unsigned NCHRS = ndigits(num, sys.base);
+    const unsigned NCHRS = ndigits(llabs(num), sys.base);
 
     if uncommon (errno > 0)
         return NULL;
@@ -251,19 +247,18 @@ char *numsys_tostring(long long num, numsys_t sys) {
         return NULL;
 
     unsigned place = 0;
-    long long digit_val;
+    unsigned long long digit_val;
     const long long NUM_ABS = llabs(num);
 
     for (size_t i = NCHRS + HAS_SIGN_PLACE - 1;; --i) {
         digit_val = NUM_ABS;
         if (HAS_SIGN_PLACE && IS_SIGNED && sys.rep == TWOS_COMPL)
             digit_val -= 1;
-        digit_val /= pow(sys.base, place++);                // Shift right to desired digit
+        digit_val /= ullpow(sys.base, place++);             // Shift right to desired digit
         digit_val -= digit_val / sys.base * sys.base;       // Subtract leading digits
         if (HAS_SIGN_PLACE && IS_SIGNED && sys.rep & 12)    // 12 = ONES_COMPL|TWOS_COMPL
             digit_val = sys.base - digit_val - 1;           // Get complement
-        result[i] = digit_val +
-            (digit_val >= 0 && digit_val <= 9 ? 48 : 55);   // 48 = '0', 58 = 10 + 'A'
+        result[i] = digit_val + (digit_val <= 9 ? 48 : 55); // 48 = '0', 58 = 10 + 'A'
         if (i == HAS_SIGN_PLACE)
             break;
     }
@@ -281,7 +276,7 @@ char *numsys_utostring(unsigned long long num, unsigned base) {
         return NULL;
     }
 
-    const unsigned NCHRS = nudigits(num, base);
+    const unsigned NCHRS = ndigits(num, base);
 
     if uncommon (errno > 0)
         return NULL;
@@ -292,14 +287,13 @@ char *numsys_utostring(unsigned long long num, unsigned base) {
         return NULL;
 
     unsigned place = 0;
-    long long digit_val;
+    unsigned long long digit_val;
 
     for (size_t i = NCHRS - 1;; --i) {
         digit_val = num;
-        digit_val /= pow(base, place++);        // Shift right to desired digit
-        digit_val -= digit_val / base * base;   // Subtract leading digits
-        result[i] = digit_val +
-            (digit_val >= 0 && digit_val <= 9 ? 48 : 55);   // 48 = '0', 58 = 10 + 'A'
+        digit_val /= ullpow(base, place++);
+        digit_val -= digit_val / base * base;
+        result[i] = digit_val + (digit_val <= 9 ? 48 : 55);
         if (i == 0)
             break;
     }
