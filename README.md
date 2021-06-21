@@ -36,16 +36,6 @@ char *numsys_uconv(const char *, unsigned, unsigned);
 // Converts integer to string in given base/representation
 char *numsys_tostring(long long, numsys_t);
 char *numsys_utostring(unsigned long long, unsigned);
-
-// C++ function aliases
-namespace numsys {
-    long long tonum(const char *, numsys_t);
-    unsigned long long utonum(const char *, unsigned);
-    char *conv(const char *, numsys_t, numsys_t);
-    char *uconv(const char *, unsigned, unsigned);
-    char *tostring(long long, numsys_t);
-    char *utostring(unsigned long long, unsigned);
-}
 ```
 The library contains a single header, `numsys.h`, from which further information can found.
 
