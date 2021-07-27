@@ -39,7 +39,7 @@ char *numsys_utostring(unsigned long long, unsigned);
 ```
 The library contains a single header, `numsys.h`, from which further information can found.
 
-If using the library with stanrd C99 or later, it is useful to know that arguments of type `numsys_t` can be passed without the use of a temporary buffer by using a [compound literal](https://en.cppreference.com/w/c/language/compound_literal). Underscores are allowed in number strings, and are encouraged to preserve readability.
+If using the library with standard C99 or later, it is useful to know that arguments of type `numsys_t` can be passed without the use of a temporary buffer by using a [compound literal](https://en.cppreference.com/w/c/language/compound_literal). Underscores are allowed in number strings, and are encouraged to preserve readability.
 ```C
 numsys_tonum("1_028", (numsys_t){10, NEG_SIGN});
 ```
