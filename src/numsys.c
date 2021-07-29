@@ -1,7 +1,6 @@
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
-#include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +11,18 @@
 #pragma GCC diagnostic ignored  "-Wnonnull-compare"
 
 // ---- Macros ----
+
+/* Takes:   char
+ * Returns: unsigned
+ *
+ * Returns int equivalent of char digit
+ * Causes side-effects */
+#define digit_to_num(digit)                     \
+    (isdigit(digit) ?                           \
+      (digit) - '0'  :                          \
+      ((digit) > 'Z' ?                          \
+        (digit) + 10 - 'a' :    /* Uppercase */ \
+        (digit) + 10 - 'A'))    /* Lowercase */ \
 
 /* Error handler
  * For use within an if-statement
@@ -25,7 +36,8 @@
 /* Takes:   unsigned
  * Returns: bool
  *
- * Returns true if base is invalid */
+ * Returns true if base is invalid
+ * Causes side-effects */
 #define inval_base(base)    (!(base) || (base) > 36)
 
 /* Takes:   numrep_t
@@ -34,11 +46,31 @@
  * Returns true if representation is invalid */
 #define inval_rep(rep)      (!((rep) & (NEG_SIGN|SIGN_PLACE|ONES_COMPL|TWOS_COMPL)))
 
+/* Takes:   numinfo_t, unsigned
+ * Returns: bool
+ *
+ * Returns true if number string information is invalid
+ * Causes side-effects */
+#define inval_info(info, base)                  \
+    ((info).min > sizeof(long long) * 8 ||      \
+      (info).space > sizeof(long long) * 8 ||   \
+      ((info).space && base == 1))              \
+
+#define max(x, y)   ((x) > (y) ? (x) : (y))
+
+/* Takes:   unsigned
+ * Returns: char
+ *
+ * Returns digit of maximum value for given base
+ * Causes side-effects */
+#define max_digit(base)     ((base) <= 10 ? (base) + '0' - 1 : (base) + 'A' - 11)
+
 /* Takes:   unsigned
  * Returns: unsigned
  *
- * Returns digit of maximum value for given base */
-#define max_digit(base) ((base) <= 10 ? (base) + '0' - 1 : (base) + 'A' - 11)
+ * Returns number of spaces present in number string
+ * Causes side-effects */
+#define nspaces(min, space) ((space) ? (((min) ? (min) : 1) - 1) / (space) : 0)
 
 // ---- Constants ----
 
@@ -52,16 +84,6 @@ static const char *DIGITS = "0123456789"
                             "MnNoOpPqQrRsStTuUvVwWxXyYzZ";
 
 // ---- Static Functions ----
-
-// Returns int equivalent of char digit
-static unsigned digit_to_num(char c) {
-    if (isdigit(c)) {
-        return c - '0';
-    } else if (c > 'Z') {   // Is lowercase
-        return c + 10 - 'a';
-    }                       // Is uppercase
-    return c + 10 - 'A';
-}
 
 // For negative numbers, returns index of sign bit or negative sign
 static size_t locate_sign(const char *restrict numstr) {
@@ -104,35 +126,36 @@ static unsigned long long ullpow(unsigned long long base, unsigned long long pow
 /* Returns string of valid characters in number string of given system
  * Returns NULL on error */ 
 static char *valid_chrs(numsys_t sys) {
-    const bool neg_is_val = sys.rep == NEG_SIGN;
+    const bool neg_is_valid = sys.rep == NEG_SIGN;
     const size_t memsize = IGNORE_LEN + sys.base +
-      (sys.base > 10 ? sys.base - 10 : 0) + neg_is_val + 2;
-    char *const valid = calloc(memsize, sizeof(char));
+      (sys.base > 10 ? sys.base - 10 : 0) + neg_is_valid + 1;
+    char *const valid = malloc(memsize * sizeof(char));
 
-    if (!valid)    // calloc() fails
+    if (!valid)    // malloc() fails
         return NULL;
 
-    size_t digit_index = 0;
+    size_t digit_index = 0, i;
 
     memcpy(valid, IGNORE, IGNORE_LEN);
-    if (neg_is_val)
+    if (neg_is_valid)
         valid[IGNORE_LEN] = '-';
-    for (size_t i = IGNORE_LEN + neg_is_val; i < memsize - 2; ++i) {
+    for (i = IGNORE_LEN + neg_is_valid; i < memsize - 1; ++i) {
         valid[i] = DIGITS[digit_index++];
         if (i >= IGNORE_LEN - 1 + 10)
             valid[++i] = DIGITS[digit_index++];
     }
+    valid[i] = '\0';
     return valid;
 }
 
 // ---- Non-Static Functions ----
 
-char *numsys_conv(const char *numstr, numsys_t src, numsys_t dest) {
+char *numsys_conv(const char *numstr, numsys_t src, numsys_t dest, numinfo_t info) {
     const long long tmp = numsys_tonum(numstr, src);
 
     if (errno > 0)
         return NULL;
-    return numsys_tostring(tmp, dest);
+    return numsys_tostring(tmp, dest, info);
 }
 long long numsys_tonum(const char *numstr, numsys_t sys) {
     if (!numstr || inval_base(sys.base) || inval_rep(sys.rep))
@@ -189,54 +212,67 @@ long long numsys_tonum(const char *numstr, numsys_t sys) {
     free(valid);
     return result;
 }
-char *numsys_tostring(long long num, numsys_t sys) {
-    if (inval_base(sys.base) || inval_rep(sys.rep))
+char *numsys_tostring(long long num, numsys_t sys, numinfo_t info) {
+    if (inval_base(sys.base) || inval_rep(sys.rep) || inval_info(info, sys.base))
         error(EINVAL, NULL);
 
-    const unsigned nchrs = ndigits(llabs(num), sys.base);
+    unsigned nchrs = ndigits(llabs(num), sys.base);
 
     if (errno > 0) // ndigits() fails
         return NULL;
 
-    const bool is_signed = num < 0;
-    const bool has_sign_place =
-      ((sys.rep == NEG_SIGN && num < 0) || sys.rep != NEG_SIGN) && sys.base != 1;
-    char *const result = calloc(nchrs + has_sign_place + 1, sizeof(char));
 
-    if (!result)   // calloc() fails
+    const bool is_signed = num < 0;
+    const bool has_sign_place = ((sys.rep == NEG_SIGN && num < 0) || sys.rep != NEG_SIGN)
+      && sys.base != 1  // Not representable in base-1
+      && num != 0       // Sign place not needed
+      && !(num == LLONG_MIN && sys.base == 2);  // Fixes extra sign place bug
+    const size_t total = max(info.min, nchrs);  // Total # of digits
+    const size_t memsize = total + nspaces(total, info.space) + has_sign_place + 1;
+    char *const result = malloc(memsize * sizeof(char));
+
+    if (!result)   // malloc() fails
         return NULL;
 
     unsigned place = 0;
     unsigned long long digit_val;
+    const char max = max_digit(sys.base);
     const long long num_abs = llabs(num);
 
-    for (size_t i = nchrs + has_sign_place - 1;; --i) {
-        digit_val = num_abs;
-        if (has_sign_place && is_signed && sys.rep == TWOS_COMPL)
-            digit_val -= 1;
-        digit_val /= ullpow(sys.base, place++);         // Shift right to desired digit
-        digit_val -= digit_val / sys.base * sys.base;   // Subtract leading digits
-        if (has_sign_place && is_signed && sys.rep & (ONES_COMPL|TWOS_COMPL))
-            digit_val = sys.base - digit_val - 1;       // Get complement
-        result[i] = digit_val +                         // Get character representation
-          (digit_val < 10 ? '0' : 'A' - 10);
+    result[memsize - 1] = '\0';
+    for (size_t i = memsize - 2;; --i) {
+        if (nchrs) {
+            digit_val = num_abs;
+            if (has_sign_place && is_signed && sys.rep == TWOS_COMPL)
+                digit_val -= 1;
+            digit_val /= ullpow(sys.base, place++);         // Shift right to desired digit
+            digit_val -= digit_val / sys.base * sys.base;   // Subtract leading digits
+            if (has_sign_place && is_signed && sys.rep & (ONES_COMPL|TWOS_COMPL))
+                digit_val = sys.base - digit_val - 1;       // Get complement
+            result[i] = digit_val +                         // Get character representation
+              (digit_val < 10 ? '0' : 'A' - 10);
+            --nchrs;
+        } else
+            result[i] = is_signed ? max : '0';
         if (i == has_sign_place)
             break;
+        if (info.space && !(place % info.space))
+            result[--i] = ' ';
     }
     if (has_sign_place) {
         if (is_signed)
-            result[0] = sys.rep == NEG_SIGN ? '-' : max_digit(sys.base);
+            result[0] = sys.rep == NEG_SIGN ? '-' : max;
         else
             result[0] = '0';
     }
     return result;
 }
-char *numsys_uconv(const char *numstr, unsigned src, unsigned dest) {
+char *numsys_uconv(const char *numstr, unsigned src, unsigned dest, numinfo_t info) {
     const unsigned long long tmp = numsys_utonum(numstr, src);
 
     if (errno > 0)
         return NULL;
-    return numsys_utostring(tmp, dest);
+    return numsys_utostring(tmp, dest, info);
 }
 unsigned long long numsys_utonum(const char *numstr, unsigned base) {
     if (!numstr || inval_base(base)) {
@@ -278,16 +314,18 @@ unsigned long long numsys_utonum(const char *numstr, unsigned base) {
     free(valid);
     return result;
 }
-char *numsys_utostring(unsigned long long num, unsigned base) {
-    if (inval_base(base))
+char *numsys_utostring(unsigned long long num, unsigned base, numinfo_t info) {
+    if (inval_base(base) || inval_info(info, base))
         error(EINVAL, NULL);
 
-    const unsigned nchrs = ndigits(num, base);
+    unsigned nchrs = ndigits(num, base);
 
     if (errno > 0)
         return NULL;
-
-    char *const result = calloc(nchrs + 1, sizeof(char));
+    
+    const size_t total = max(info.min, nchrs);  // Total # of digits
+    const size_t memsize = total + nspaces(total, info.space) + 1;
+    char *const result = malloc(memsize * sizeof(char));
 
     if (!result)
         return NULL;
@@ -295,12 +333,19 @@ char *numsys_utostring(unsigned long long num, unsigned base) {
     unsigned place = 0;
     unsigned long long digit_val;
 
-    for (size_t i = nchrs - 1;; --i) {
-        digit_val = num / ullpow(base, place++);
-        digit_val -= digit_val / base * base;
-        result[i] = digit_val + (digit_val < 10 ? '0' : 'A' - 10);
+    result[memsize - 1] = '\0';
+    for (size_t i = memsize - 2;; --i) {
+        if (nchrs) {
+            digit_val = num / ullpow(base, place++);
+            digit_val -= digit_val / base * base;
+            result[i] = digit_val + (digit_val < 10 ? '0' : 'A' - 10);
+            --nchrs;
+        } else
+            result[i] = '0';
         if (!i)
             break;
+        if (info.space && !(place % info.space))
+            result[--i] = ' ';
     }
     return result;
 }

@@ -13,6 +13,12 @@
     #define declspec(...)
 #endif  // MSVC
 
+// Information pertaining to a number's string representation
+typedef struct numinfo_t {
+    unsigned min;   // Minimum # of digits
+    unsigned space; // # of digits between spaces, 0 for no spaces
+} numinfo_t;
+
 // Determines representation of number strings
 typedef enum numrep_t {
     NEG_SIGN   = 1, // Append negative sign to front
@@ -38,11 +44,11 @@ typedef struct numsys_t {
  *  ERANGE        Number string cannot be represented in 'dest' form
  *  (else)        Internal error */
 extern char *declspec(nothrow, restrict)
-numsys_conv(const char *numstr, numsys_t src, numsys_t dest)
+numsys_conv(const char *numstr, numsys_t src, numsys_t dest, numinfo_t info)
 attribute(nonnull, nothrow, warn_unused_result);
 
 extern char *declspec(nothrow, restrict)
-numsys_uconv(const char *numstr, unsigned src, unsigned dest)
+numsys_uconv(const char *numstr, unsigned src, unsigned dest, numinfo_t info)
 attribute(nonnull, nothrow, warn_unused_result);
 
 /* Returns value of number string according to given number system
@@ -69,11 +75,11 @@ attribute(nonnull, nothrow, pure);
  *  ERANGE        Number cannot be represented in string form
  *  (else)        Internal error */
 extern char *declspec(nothrow, restrict)
-numsys_tostring(long long num, numsys_t sys)
+numsys_tostring(long long num, numsys_t sys, numinfo_t info)
 attribute(nothrow, warn_unused_result);
 
 extern char *declspec(nothrow, restrict)
-numsys_utostring(unsigned long long num, unsigned base)
+numsys_utostring(unsigned long long num, unsigned base, numinfo_t info)
 attribute(nothrow, warn_unused_result);
 
 #undef attribute
