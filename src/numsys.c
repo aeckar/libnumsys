@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <ladle/common/impl.h>
 #include <ladle/collect.h>
+#include <ladle/common/lib.h>
 #include <ladle/common/ptrcmp.h>
 
 #include "numsys.h"
@@ -76,7 +76,7 @@
 #define IGNORE_LEN  7
 
 // String constant from which new validity strings are created 
-static const char *DIGITS = "0123456789"
+static const char *digits = "0123456789"
                             "aAbBcCdDeEfFgGhHiIjJkKlLm"
                             "MnNoOpPqQrRsStTuUvVwWxXyYzZ";
 
@@ -137,9 +137,9 @@ static char *valid_chrs(numsys_t sys) {
     if (neg_is_valid)
         valid[IGNORE_LEN] = '-';
     for (i = IGNORE_LEN + neg_is_valid; i < memsize - 1; ++i) {
-        valid[i] = DIGITS[digit_index++];
-        if (i >= IGNORE_LEN + 10)
-            valid[++i] = DIGITS[digit_index++];
+        valid[i] = digits[digit_index++];
+        if (i > IGNORE_LEN + 10)
+            valid[++i] = digits[digit_index++];
     }
     valid[i] = '\0';
     return valid;
@@ -155,10 +155,11 @@ char *nsys_conv(const char *numstr, numsys_t src, numsys_t dest, numinfo_t info)
     return nsys_tostr(tmp, dest, info);
 }
 long long nsys_tonum(const char *numstr, numsys_t sys) {
+    coll_einit(0, long long, nsys_tonum, numstr, sys);
+
     if (!numstr || inval_base(sys.base) || inval_rep(sys.rep))
         error(EINVAL, 0);
 
-    coll_einit(long long, nsys_tonum, 0, numstr, sys);
     char *const valid = coll_queue(valid_chrs(sys));
 
     if (!valid)    // valid_chrs() fails
@@ -262,12 +263,13 @@ char *nsys_uconv(const char *numstr, unsigned src, unsigned dest, numinfo_t info
     return nsys_utostr(tmp, dest, info);
 }
 unsigned long long nsys_utonum(const char *numstr, unsigned base) {
+    coll_einit(0, unsigned long long, nsys_utonum, numstr, base);
+
     if (!numstr || inval_base(base)) {
         errno = EINVAL;
         return 0;
     }
 
-    coll_einit(unsigned long long, nsys_utonum, 0, numstr, base);
     char *const valid = coll_queue(valid_chrs((numsys_t) {base, NR_SPLACE}));
 
     if (!valid)
